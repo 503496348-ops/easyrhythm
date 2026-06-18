@@ -157,7 +157,7 @@ async def baggage_tool(query: str) -> str:
     if "allowance" in q:
         return "One carry-on and one checked bag (up to 50 lbs) are included."
     if "missing" in q or "lost" in q:
-        return "If a bag is missing, file a baggage claim at the airport or with the Baggage Agent so we can track and deliver it."
+        return "If a bag is missing, file a baggage claim at the airport so we can track and deliver it."
     return "Please provide details about your baggage inquiry."
 
 

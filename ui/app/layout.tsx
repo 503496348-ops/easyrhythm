@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "EasyRhythm 智能客服",
   description: "EasyRhythm Agent智能客服系统 — 多Agent编排",
   icons: {
-    icon: "/openai_logo.svg",
+    icon: "/favicon.svg",
   },
 };
 

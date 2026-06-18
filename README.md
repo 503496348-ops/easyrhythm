@@ -16,7 +16,7 @@
 - **多Agent编排 / Multi-Agent Orchestration** — Triage Agent 自动路由到专业 Agent（航班、预订、座位、FAQ、退款等）
 - **LLM护栏 / Guardrails** — 内置相关性检查和防越狱护栏，确保对话安全
 - **SSE流式输出 / Streaming** — 实时流式显示Agent推理和回复过程
-- **CRM集成模式 / CRM Integration Patterns** — 参考 eShopSupport（.NET Aspire微服务架构）和悟空CRM（中国市场CRM集成）
+- **CRM集成模式 / CRM Integration Patterns** — 参考企业级工单系统和多市场CRM集成方案
 - **ChatKit前端 / ChatKit UI** — 基于 @openai/chatkit-react 的高质量聊天界面
 
 ## 🏗️ Architecture / 系统架构
@@ -36,9 +36,7 @@
 └─────────────────────────────────────────────┘
 ```
 
-Inspired by:
-- **eShopSupport** — .NET Aspire 微服务架构，支持文本分类、情感分析、摘要生成
-- **悟空CRM** — 中国市场CRM集成，多语言支持，一键部署
+Built with enterprise-grade patterns for multi-agent orchestration, conversation management, and quality evaluation.
 
 ## 🚀 Quick Start / 快速开始
 
@@ -74,7 +72,7 @@ cd python-backend && python -m uvicorn main:app --reload --port 8000
 cd ui && npm run dev
 ```
 
-Frontend: http://localhost:3000 | Backend: http://localhost:8000
+> Configure `OPENAI_API_KEY` and run backend + frontend as described above.
 
 ## 🤖 Agent 说明 / Agents Included
 

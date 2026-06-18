@@ -1,6 +1,6 @@
-# eShopSupport Architecture Patterns (Reference)
+# Enterprise Support Architecture Patterns
 
-> From dotnet/eShopSupport — .NET Aspire-based AI customer support sample
+> EasyRhythm architecture design notes — informed by enterprise AI customer support patterns
 
 ## Key Patterns
 
@@ -11,10 +11,9 @@
 - Synthetic data generation for testing
 - Chat bot with history and suggested responses
 
-### .NET Aspire Architecture
+### Microservice Architecture
 - Services-based microservice architecture
-- Docker-based local development with small local models
-- Python integration via .NET Aspire
+- Docker-based local development
 - AI response evaluation with grounded Q&A data
 
 ### Relevance to EasyRhythm

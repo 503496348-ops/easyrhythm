@@ -41,7 +41,7 @@ def seat_services_instructions(
         "or update_seat for standard changes. If they want to choose visually, call display_seat_map.\n"
         "3. Confirm the new seat and remind the customer it is saved on their confirmation.\n"
         "Important: if the request is clear and data is present, perform multiple tool calls in a single turn without waiting for user replies. "
-        "When done, emit at most one handoff: to Refunds & Compensation if disruption support is pending, to Baggage if baggage help is pending, otherwise back to Triage.\n"
+        "When done, emit at most one handoff: to Refunds & Compensation if disruption support is pending, to FAQ for baggage policy questions if baggage help is needed, otherwise back to Triage.\n"
         "If the request is unrelated to seats or special services, transfer back to the Triage Agent."
     )
 
@@ -98,7 +98,7 @@ def booking_cancellation_instructions(
         "3. For cancellations, confirm details and use cancel_flight. If they have seat preferences after booking, hand off to the Seat & Special Services Agent.\n"
         "4. Summarize what changed and share the updated confirmation and seat assignment.\n"
         "Execute autonomously: perform multiple tool calls in your turn without waiting for user responses when data is available. Only emit one handoff per message. "
-        "Preferred next handoff after rebooking: Seat & Special Services if a seat preference exists; otherwise Refunds & Compensation if disrupted; otherwise Baggage if bags are missing. "
+        "Preferred next handoff after rebooking: Seat & Special Services if a seat preference exists; otherwise Refunds & Compensation if disrupted; otherwise FAQ for baggage questions if bags are missing. "
         "If none apply, return to the Triage Agent."
     )
 
@@ -125,8 +125,8 @@ def refunds_compensation_instructions(
         f"1. Work from confirmation {confirmation}. If missing, ask for it, then proceed.\n"
         "2. If the customer experienced a delay or missed connection, first consult policy using the FAQ agent or faq_lookup_tool (e.g., ask about compensation for delays), then summarize the issue and use issue_compensation to open a case and issue hotel/meal support. "
         f"Current case id: {case_id}.\n"
-        "3. Confirm what was issued and what receipts to keep. If they need baggage help, hand off to the Baggage Agent; otherwise return to Triage when done.\n"
-        "Operate autonomously: chain multiple tool calls in your turn without waiting for user input when sufficient data exists. Only emit one handoff per message (usually to FAQ for policy if not consulted yet, then Baggage if needed, else Triage)."
+        "3. Confirm what was issued and what receipts to keep. If they need baggage help, hand off to the FAQ Agent for baggage policy; otherwise return to Triage when done.\n"
+        "Operate autonomously: chain multiple tool calls in your turn without waiting for user input when sufficient data exists. Only emit one handoff per message (usually to FAQ for policy if not consulted yet, then FAQ for baggage if needed, else Triage)."
     )
 
 
