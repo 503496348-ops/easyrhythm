@@ -47,6 +47,17 @@ from airline.agents import (
     triage_agent,
 )
 from memory_store import MemoryStore
+from airline.intent_classifier import (
+    IntentResult,
+    classify_intent,
+    should_fallback,
+    get_fallback_message,
+    INTENT_TO_AGENT,
+)
+from airline.entity_extractor import (
+    extract_entities,
+    hydrate_context_from_entities,
+)
 
 
 class AgentEvent(BaseModel):
@@ -332,6 +343,107 @@ class AirlineServer(ChatKitServer[dict[str, Any]]):
         )
         streamed_items_seen = 0
 
+        # ── Intent Classification & Entity Extraction (AtomCollide-智械工坊) ──
+        intent_result: IntentResult | None = None
+        entity_changes: Dict[str, Any] = {}
+        if user_text:
+            # Run intent classification
+            intent_result = await classify_intent(user_text)
+            # Track in context
+            if state.context.intent_history is None:
+                state.context.intent_history = []
+            state.context.intent_history.append(intent_result.model_dump())
+            state.context.last_intent = intent_result.intent
+            state.context.last_intent_confidence = intent_result.confidence
+
+            # Run entity extraction
+            extraction_result = await extract_entities(user_text)
+            if extraction_result.entities:
+                entity_changes = await hydrate_context_from_entities(
+                    extraction_result.entities, state.context
+                )
+                if state.context.extracted_entities is None:
+                    state.context.extracted_entities = []
+                state.context.extracted_entities.extend(
+                    [e.model_dump() for e in extraction_result.entities]
+                )
+
+            # Record intent + entity events for UI
+            now_ms = time.time() * 1000
+            state.events.append(AgentEvent(
+                id=uuid4().hex,
+                type="intent_classified",
+                agent="IntentClassifier",
+                content=f"{intent_result.intent} ({intent_result.confidence:.0%})",
+                metadata={
+                    "intent": intent_result.intent,
+                    "confidence": intent_result.confidence,
+                    "source": intent_result.source,
+                    "reasoning": intent_result.reasoning,
+                    "agent_target": intent_result.agent_target,
+                },
+                timestamp=now_ms,
+            ))
+            if extraction_result.entities:
+                state.events.append(AgentEvent(
+                    id=uuid4().hex,
+                    type="entities_extracted",
+                    agent="EntityExtractor",
+                    content=f"{len(extraction_result.entities)} entity(ies) extracted",
+                    metadata={
+                        "entities": [e.model_dump() for e in extraction_result.entities],
+                        "context_changes": entity_changes,
+                    },
+                    timestamp=now_ms,
+                ))
+
+            # Low-confidence fallback: ask for clarification instead of routing
+            if should_fallback(intent_result):
+                fallback_msg = get_fallback_message(intent_result)
+                state.input_items.append({"role": "assistant", "content": fallback_msg})
+                state.events.append(AgentEvent(
+                    id=uuid4().hex,
+                    type="fallback_triggered",
+                    agent="IntentClassifier",
+                    content=fallback_msg,
+                    metadata={
+                        "intent": intent_result.intent,
+                        "confidence": intent_result.confidence,
+                        "reason": "confidence_below_threshold",
+                    },
+                    timestamp=now_ms,
+                ))
+                yield ThreadItemDoneEvent(
+                    item=AssistantMessageItem(
+                        id=self.store.generate_item_id("message", thread, context),
+                        thread_id=thread.id,
+                        created_at=datetime.now(),
+                        content=[AssistantMessageContent(text=fallback_msg)],
+                    )
+                )
+                await self._broadcast_state(thread, context)
+                return
+
+            # High-confidence intent → route directly to specialist agent
+            if intent_result.confidence >= 0.85 and intent_result.agent_target:
+                target_agent = intent_result.agent_target
+                if target_agent != state.current_agent_name:
+                    # Emit handoff event for UI
+                    state.events.append(AgentEvent(
+                        id=uuid4().hex,
+                        type="intent_routing",
+                        agent="IntentClassifier",
+                        content=f"Routing to {target_agent} based on intent '{intent_result.intent}'",
+                        metadata={
+                            "from_agent": state.current_agent_name,
+                            "to_agent": target_agent,
+                            "intent": intent_result.intent,
+                            "confidence": intent_result.confidence,
+                        },
+                        timestamp=now_ms,
+                    ))
+                    state.current_agent_name = target_agent
+
         # Tell the client which thread to bind runner updates to before streaming starts.
         yield ClientEffectEvent(name="runner_bind_thread", data={"thread_id": thread.id, "ts": time.time()})
 
@@ -488,6 +600,12 @@ class AirlineServer(ChatKitServer[dict[str, Any]]):
             "agents": _build_agents_list(),
             "events": [e.model_dump() for e in state.events],
             "guardrails": [g.model_dump() for g in state.guardrails],
+            "intent": {
+                "last_intent": state.context.last_intent,
+                "confidence": state.context.last_intent_confidence,
+                "history": (state.context.intent_history or [])[-10:],
+            },
+            "entities": (state.context.extracted_entities or [])[-20:],
         }
 
     # -- Streaming state updates to UI listeners ---------------------------------

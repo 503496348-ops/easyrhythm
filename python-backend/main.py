@@ -23,6 +23,8 @@ from airline.context import (
     create_initial_context,
     public_context,
 )
+from airline.intent_classifier import classify_intent, IntentResult
+from airline.entity_extractor import extract_entities, EntityExtractionResult
 from server import AirlineServer
 
 app = FastAPI()
@@ -95,6 +97,24 @@ async def chatkit_state_stream(
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
+@app.post("/analyze")
+async def analyze_message(request: Request) -> Dict[str, Any]:
+    """Analyze a message for intent classification and entity extraction without running the agent."""
+    body = await request.json()
+    message = body.get("message", "")
+    if not message:
+        return {"error": "message field required"}
+
+    intent_result = await classify_intent(message)
+    extraction_result = await extract_entities(message)
+
+    return {
+        "intent": intent_result.model_dump(),
+        "entities": [e.model_dump() for e in extraction_result.entities],
+        "message": message,
+    }
+
+
 @app.get("/health")
 async def health_check() -> Dict[str, str]:
     return {"status": "healthy"}
@@ -113,4 +133,6 @@ __all__ = [
     "refunds_compensation_agent",
     "seat_special_services_agent",
     "triage_agent",
+    "classify_intent",
+    "extract_entities",
 ]

@@ -2,6 +2,7 @@ from __future__ import annotations as _annotations
 
 from chatkit.agents import AgentContext
 from pydantic import BaseModel
+from typing import Any
 
 
 class AirlineAgentContext(BaseModel):
@@ -20,6 +21,12 @@ class AirlineAgentContext(BaseModel):
     special_service_note: str | None = None
     origin: str | None = None
     destination: str | None = None
+
+    # --- Intent & Entity tracking (AtomCollide-智械工坊) ---
+    intent_history: list[dict[str, Any]] | None = None
+    last_intent: str | None = None
+    last_intent_confidence: float | None = None
+    extracted_entities: list[dict[str, Any]] | None = None
 
 
 class AirlineAgentChatContext(AgentContext[dict]):
@@ -51,6 +58,8 @@ def public_context(ctx: AirlineAgentContext) -> dict:
         "baggage_claim_id",
         "compensation_case_id",
         "scenario",
+        "intent_history",
+        "extracted_entities",
     }
     for key in list(data.keys()):
         if key in hidden_keys:
