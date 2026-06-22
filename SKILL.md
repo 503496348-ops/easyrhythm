@@ -8,7 +8,7 @@ license: MIT
 
 # EasyRhythm 松弛有度
 
-Agent智能客服系统，基于OpenAI Agents SDK构建，支持多Agent编排、LLM护栏、SSE流式输出和CRM集成。
+Agent智能客服系统，支持多Agent编排、LLM护栏、SSE流式输出和CRM集成。
 
 ## Capabilities
 - Multi-agent orchestration with automatic triage routing
