@@ -1,6 +1,6 @@
 ---
 name: easyrhythm
-version: 1.0.0
+version: 1.1.0
 description: "多平台智能客服系统。飞书/Telegram/Discord/微信四平台适配+向量知识库+RAG检索。当需要搭建智能客服、配置自动回复、管理知识库时使用。"
 author: AtomCollide-智械工坊团队
 license: MIT
