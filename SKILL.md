@@ -4,6 +4,13 @@ version: 1.0.0
 description: 松弛有度（EasyRhythm）— Agent智能客服系统。多Agent编排+LLM护栏+SSE流式+CRM集成
 author: AtomCollide-智械工坊团队
 license: MIT
+
+triggers:
+  - 智能客服
+  - 对话系统
+  - chatbot
+  - easyrhythm
+  - 松弛有度
 ---
 
 # EasyRhythm 松弛有度
