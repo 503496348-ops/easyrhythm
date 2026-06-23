@@ -1,7 +1,7 @@
 ---
 name: easyrhythm
 version: 1.0.0
-description: 松弛有度（EasyRhythm）— Agent智能客服系统。多Agent编排+LLM护栏+SSE流式+CRM集成
+description: "多平台智能客服系统。飞书/Telegram/Discord/微信四平台适配+向量知识库+RAG检索。当需要搭建智能客服、配置自动回复、管理知识库时使用。"
 author: AtomCollide-智械工坊团队
 license: MIT
 
@@ -14,6 +14,8 @@ triggers:
 ---
 
 # EasyRhythm 松弛有度
+
+> 📖 详细文档见 `references/` 目录
 
 Agent智能客服系统，支持多Agent编排、LLM护栏、SSE流式输出和CRM集成。
 
@@ -31,3 +33,12 @@ Agent智能客服系统，支持多Agent编排、LLM护栏、SSE流式输出和C
 - Python 3.11+
 - Node.js 18+
 - OPENAI_API_KEY environment variable
+
+## 工作流
+
+使用此技能时，按以下步骤执行：
+- [ ] 1. 确认用户需求和使用场景
+- [ ] 2. 加载相关代码和配置
+- [ ] 3. 执行核心功能
+- [ ] 4. 验证输出结果
+- [ ] 5. 反馈给用户
