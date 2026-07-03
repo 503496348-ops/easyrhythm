@@ -245,3 +245,8 @@ AtomCollide-智械工坊团队出品。更多产品见：[AtomCollide Product Ma
 
 - 新增客服上下文裁剪与改写验证：保留重要承诺、限制过度扩写、校验必要术语不丢失。
 - 交付物包含可导入模块与定向单元测试。
+
+## 2026-07-03 产品收敛门禁
+
+- 新增 `scripts/product_convergence_gate.py`：从远端干净 clone 后可运行 `python3 scripts/product_convergence_gate.py --json`，检查 SKILL/README、入口文件、smoke 目标、测试与外部融合引用是否自洽。
+- 新增 `tests/test_product_convergence_gate.py`：确保门禁在产品仓库中真实可执行，避免后续增强只停留在孤岛模块。

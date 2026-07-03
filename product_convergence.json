@@ -1,0 +1,20 @@
+{
+  "repo": "easyrhythm",
+  "entrypoints": [
+    "python-backend/main.py",
+    "python-backend/server.py"
+  ],
+  "smoke_targets": [
+    "python-backend/airline/guardrails.py",
+    "scripts/product_convergence_gate.py"
+  ],
+  "known_external_reference_files": [
+    "python-backend/adapters/__init__.py",
+    "python-backend/adapters/router.py",
+    "python-backend/knowledge/__init__.py",
+    "python-backend/knowledge/retriever.py",
+    "python-backend/knowledge/store.py",
+    "scripts/product_convergence_gate.py"
+  ],
+  "policy": "External/fusion references are allowed only when explicitly reviewed here; new fusion work must add a smoke target or entrypoint wiring."
+}
