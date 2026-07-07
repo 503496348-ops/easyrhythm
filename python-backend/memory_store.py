@@ -27,35 +27,62 @@ class MemoryStore(Store[dict[str, Any]]):
         return f"atc_{uuid4().hex[:8]}"
 
     @staticmethod
-    def _get_thread_metadata(thread: ThreadMetadata | Thread) -> ThreadMetadata:
-        """Return thread metadata without any embedded items (openai-chatkit>=1.0)."""
-        has_items = isinstance(thread, Thread) or "items" in getattr(
-            thread, "model_fields_set", set()
+    def _coerce_thread_metadata(thread: ThreadMetadata | Thread | dict[str, Any]) -> ThreadMetadata:
+        """Normalize thread input from object or legacy dict payload."""
+        if isinstance(thread, dict):
+            thread_obj = ThreadMetadata(**thread)
+        elif isinstance(thread, Thread):
+            thread_obj = thread.model_copy(deep=True)
+        else:
+            thread_obj = thread.model_copy(deep=True)
+
+        has_items = isinstance(thread_obj, Thread) or "items" in getattr(
+            thread_obj, "model_fields_set", set()
         )
         if not has_items:
-            return thread.model_copy(deep=True)
+            return thread_obj
 
-        data = thread.model_dump()
+        data = thread_obj.model_dump()
         data.pop("items", None)
         return ThreadMetadata(**data).model_copy(deep=True)
+
+    @staticmethod
+    def _coerce_thread_item(item: ThreadItem | dict[str, Any]) -> ThreadItem:
+        """Normalize thread item input from object or legacy dict payload."""
+        if isinstance(item, ThreadItem):
+            return item.model_copy(deep=True)
+        if isinstance(item, dict):
+            return ThreadItem(**item)
+        raise TypeError("thread item must be ThreadItem or dict")
+
+    @staticmethod
+    def _ensure_thread_exists(
+        state_store: Dict[str, _ThreadState], thread_id: str
+    ) -> _ThreadState:
+        """Create thread metadata shell if missing (support array/object schema callers)."""
+        state = state_store.get(thread_id)
+        if state is None:
+            state = _ThreadState(
+                thread=ThreadMetadata(id=thread_id, created_at=datetime.utcnow()),
+                items=[],
+            )
+            state_store[thread_id] = state
+        return state
 
     # -- Thread metadata -------------------------------------------------
     async def load_thread(self, thread_id: str, context: dict[str, Any]) -> ThreadMetadata:
         state = self._threads.get(thread_id)
         if not state:
             raise NotFoundError(f"Thread {thread_id} not found")
-        return self._get_thread_metadata(state.thread)
+        return state.thread.model_copy(deep=True)
 
-    async def save_thread(self, thread: ThreadMetadata, context: dict[str, Any]) -> None:
-        metadata = self._get_thread_metadata(thread)
-        state = self._threads.get(thread.id)
+    async def save_thread(self, thread: ThreadMetadata | dict[str, Any], context: dict[str, Any]) -> None:
+        metadata = self._coerce_thread_metadata(thread)
+        state = self._threads.get(metadata.id)
         if state:
             state.thread = metadata
         else:
-            self._threads[thread.id] = _ThreadState(
-                thread=metadata,
-                items=[],
-            )
+            self._threads[metadata.id] = _ThreadState(thread=metadata, items=[])
 
     async def load_threads(
         self,
@@ -65,7 +92,7 @@ class MemoryStore(Store[dict[str, Any]]):
         context: dict[str, Any],
     ) -> Page[ThreadMetadata]:
         threads = sorted(
-            (self._get_thread_metadata(state.thread) for state in self._threads.values()),
+            (state.thread.model_copy(deep=True) for state in self._threads.values()),
             key=lambda t: t.created_at or datetime.min,
             reverse=(order == "desc"),
         )
@@ -91,14 +118,7 @@ class MemoryStore(Store[dict[str, Any]]):
 
     # -- Thread items ----------------------------------------------------
     def _items(self, thread_id: str) -> List[ThreadItem]:
-        state = self._threads.get(thread_id)
-        if state is None:
-            state = _ThreadState(
-                thread=ThreadMetadata(id=thread_id, created_at=datetime.utcnow()),
-                items=[],
-            )
-            self._threads[thread_id] = state
-        return state.items
+        return self._ensure_thread_exists(self._threads, thread_id).items
 
     async def load_thread_items(
         self,
@@ -127,17 +147,20 @@ class MemoryStore(Store[dict[str, Any]]):
         return Page(data=slice_items, has_more=has_more, after=next_after)
 
     async def add_thread_item(
-        self, thread_id: str, item: ThreadItem, context: dict[str, Any]
+        self, thread_id: str, item: ThreadItem | dict[str, Any], context: dict[str, Any]
     ) -> None:
-        self._items(thread_id).append(item.model_copy(deep=True))
+        self._items(thread_id).append(self._coerce_thread_item(item))
 
-    async def save_item(self, thread_id: str, item: ThreadItem, context: dict[str, Any]) -> None:
+    async def save_item(
+        self, thread_id: str, item: ThreadItem | dict[str, Any], context: dict[str, Any]
+    ) -> None:
+        coerced_item = self._coerce_thread_item(item)
         items = self._items(thread_id)
         for idx, existing in enumerate(items):
-            if existing.id == item.id:
-                items[idx] = item.model_copy(deep=True)
+            if existing.id == coerced_item.id:
+                items[idx] = coerced_item
                 return
-        items.append(item.model_copy(deep=True))
+        items.append(coerced_item)
 
     async def load_item(self, thread_id: str, item_id: str, context: dict[str, Any]) -> ThreadItem:
         for item in self._items(thread_id):
