@@ -21,6 +21,7 @@ from .feishu import FeishuAdapter
 from .telegram import TelegramAdapter
 from .discord import DiscordAdapter
 from .wechat import WeChatAdapter
+from .botpress import BotpressAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ ADAPTER_REGISTRY: Dict[str, type[PlatformAdapter]] = {
     "telegram": TelegramAdapter,
     "discord": DiscordAdapter,
     "wechat": WeChatAdapter,
+    "botpress": BotpressAdapter,
 }
 
 

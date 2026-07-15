@@ -11,10 +11,12 @@ dispatches to the correct adapter.
 
 from .base import PlatformAdapter, PlatformMessage, MessageType
 from .router import MessageRouter
+from .botpress import BotpressAdapter
 
 __all__ = [
     "PlatformAdapter",
     "PlatformMessage",
     "MessageType",
     "MessageRouter",
+    "BotpressAdapter",
 ]

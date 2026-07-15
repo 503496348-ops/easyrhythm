@@ -53,6 +53,15 @@ Agent智能客服系统，支持多Agent编排、LLM护栏、SSE流式输出和C
 - 新增 `scripts/product_convergence_gate.py`：从远端干净 clone 后可运行 `python3 scripts/product_convergence_gate.py --json`，检查 SKILL/README、入口文件、smoke 目标、测试与外部融合引用是否自洽。
 - 新增 `tests/test_product_convergence_gate.py`：确保门禁在产品仓库中真实可执行，避免后续增强只停留在孤岛模块。
 
+
+## 2026-07-16 融合增强（P2）
+
+### botpress/botpress -> easyrhythm
+
+- 新增 `python-backend/adapters/botpress.py`，补齐 Botpress 多平台适配能力（入站标准化、Webhook 签名校验、发送网关与会话映射）。
+- 在 `python-backend/adapters/router.py` 注册 `botpress` 平台到 `ADAPTER_REGISTRY`，并在 `python-backend/adapters/__init__.py` 导出 `BotpressAdapter`，使会话层具备可插拔平台能力。
+- `doctor`/`smoke` 与收敛门禁目标仅做静态验证，新增适配器以最小改动对现有会话脚本进行兼容扩展。
+
 ## 一键开箱交付
 
 本仓库提供标准一键入口：
