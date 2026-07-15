@@ -4,6 +4,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 import asyncio
+import os
 import json
 from typing import Any, AsyncIterator, Dict, List, Optional
 from uuid import uuid4
@@ -46,7 +47,7 @@ from airline.agents import (
     seat_special_services_agent,
     triage_agent,
 )
-from memory_store import MemoryStore
+from memory_store import MemoryStore, SqliteMemoryStore
 from airline.intent_classifier import (
     IntentResult,
     classify_intent,
@@ -158,7 +159,12 @@ class ConversationState:
 
 class AirlineServer(ChatKitServer[dict[str, Any]]):
     def __init__(self) -> None:
-        self.store = MemoryStore()
+        backend = os.getenv("EASYRHYTHM_MEMORY_BACKEND", "memory").lower()
+        if backend == "sqlite":
+            db_path = os.getenv("EASYRHYTHM_MEMORY_DB_PATH", "runtime_data/easyrhythm-memory.sqlite3")
+            self.store = SqliteMemoryStore(db_path=db_path)
+        else:
+            self.store = MemoryStore()
         super().__init__(self.store)
         self._state: Dict[str, ConversationState] = {}
         self._listeners: Dict[str, list[asyncio.Queue]] = {}
