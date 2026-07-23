@@ -1,73 +1,50 @@
 ---
 name: easyrhythm
-version: 1.2.0
-description: "多平台智能客服系统。飞书/Telegram/Discord/微信四平台适配+向量知识库+RAG检索。当需要搭建智能客服、配置自动回复、管理知识库时使用。"
-author: AtomCollide-智械工坊团队
-license: MIT
-
+description: "松弛有度智能客服 — 意图分类、实体抽取、FastAPI 服务"
 triggers:
-  - 智能客服
-  - 对话系统
-  - chatbot
-  - easyrhythm
-  - 松弛有度
+  - "客服"
+  - "意图分类"
+  - "实体抽取"
+  - "智能客服"
+  - "easyrhythm"
 ---
 
-# EasyRhythm 松弛有度
+# EasyRhythm — 松弛有度智能客服
 
-> 📖 详细文档见 `references/` 目录
+航空客服场景的意图分类 + 实体抽取 + FastAPI 服务端。
 
-Agent智能客服系统，支持多Agent编排、LLM护栏、SSE流式输出和CRM集成。
+## 核心能力
 
-## Capabilities
-- Multi-agent orchestration with automatic triage routing
-- LLM guardrails (relevance check, jailbreak prevention)
-- SSE streaming for real-time agent output
-- CRM integration patterns (enterprise support ticket systems, multi-market CRM integration)
-- ChatKit-based chat UI with agent visualization panel
-- **Intent Classification Engine** — Hybrid pattern+LLM intent classification with confidence scoring, low-confidence fallback handling, and automatic agent routing (comparable to Rasa NLU)
-- **Entity Extraction Pipeline** — Regex + LLM entity extraction for flight numbers, confirmation codes, seat numbers, airports, dates, baggage tags, and more — auto-hydrates conversation context
+| 命令 | 说明 |
+|------|------|
+| `easyrhythm serve` | 启动 FastAPI 服务 |
+| `easyrhythm classify <text>` | 意图分类 |
+| `easyrhythm extract <text>` | 实体抽取 |
+| `easyrhythm info` | 产品信息 |
 
-## Dependencies
+## 快速开始
 
-- Python 3.11+
-- Node.js 18+
-- OPENAI_API_KEY environment variable
+```bash
+# 启动服务
+python3 scripts/cli.py serve --port 8000
 
-## 工作流
+# 意图分类
+python3 scripts/cli.py classify "帮我查一下今天的航班"
 
-使用此技能时，按以下步骤执行：
-- [ ] 1. 确认用户需求和使用场景
-- [ ] 2. 加载相关代码和配置
-- [ ] 3. 执行核心功能
-- [ ] 4. 验证输出结果
-- [ ] 5. 反馈给用户
+# 实体抽取
+python3 scripts/cli.py extract "北京到上海的航班"
+```
 
-## 2026-07-03 运行时增强
+## 架构
 
-- 新增客服上下文裁剪与改写验证：保留重要承诺、限制过度扩写、校验必要术语不丢失。
-- 验证：新增模块通过 py_compile 和定向 pytest，代码不依赖外部服务。
+- `python-backend/server.py` — FastAPI 服务端
+- `python-backend/airline/intent_classifier.py` — 意图分类器
+- `python-backend/airline/entity_extractor.py` — 实体抽取器
+- `python-backend/airline/tools.py` — 航空工具集
+- `python-backend/memory_store.py` — 记忆存储
 
-## 2026-07-03 产品收敛门禁
+## 测试
 
-- 新增 `scripts/product_convergence_gate.py`：从远端干净 clone 后可运行 `python3 scripts/product_convergence_gate.py --json`，检查 SKILL/README、入口文件、smoke 目标、测试与外部融合引用是否自洽。
-- 新增 `tests/test_product_convergence_gate.py`：确保门禁在产品仓库中真实可执行，避免后续增强只停留在孤岛模块。
-
-
-## 2026-07-16 融合增强（P2）
-
-### botpress/botpress -> easyrhythm
-
-- 新增 `python-backend/adapters/botpress.py`，补齐 Botpress 多平台适配能力（入站标准化、Webhook 签名校验、发送网关与会话映射）。
-- 在 `python-backend/adapters/router.py` 注册 `botpress` 平台到 `ADAPTER_REGISTRY`，并在 `python-backend/adapters/__init__.py` 导出 `BotpressAdapter`，使会话层具备可插拔平台能力。
-- `doctor`/`smoke` 与收敛门禁目标仅做静态验证，新增适配器以最小改动对现有会话脚本进行兼容扩展。
-
-## 一键开箱交付
-
-本仓库提供标准一键入口：
-
-- `install.sh`：用户的一条命令安装与冒烟入口。
-- `scripts/setup.py`：安装声明依赖并串联 doctor。
-- `scripts/doctor.py`：检查 README、SKILL、入口脚本、package scripts 与产品收敛门禁。
-- `scripts/smoke.py`：运行 doctor、产品收敛门禁与 Python 编译级冒烟。
-- `tests/test_one_click_open_box.py`：契约测试，防止 README 写了但脚本缺失。
+```bash
+python3 -m pytest tests/ -q
+```
