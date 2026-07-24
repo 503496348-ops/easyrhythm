@@ -4,7 +4,7 @@ import argparse, json, sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'python-backend'))
 
-def cmd_serve(args):
+def cmd_serve(args) -> None:
     """Start the FastAPI server."""
     port = args.port or 8000
     print(json.dumps({"action": "serve", "port": port, "status": "starting"}, ensure_ascii=False))
@@ -16,7 +16,7 @@ def cmd_serve(args):
         print("uvicorn not installed. Run: pip install uvicorn fastapi")
         sys.exit(1)
 
-def cmd_classify(args):
+def cmd_classify(args) -> None:
     """Classify user intent."""
     try:
         from airline.intent_classifier import IntentClassifier
@@ -26,7 +26,7 @@ def cmd_classify(args):
     except ImportError:
         print(json.dumps({"text": args.text, "status": "intent_classifier_loaded", "note": "requires backend deps"}, ensure_ascii=False))
 
-def cmd_extract(args):
+def cmd_extract(args) -> None:
     """Extract entities from text."""
     try:
         from airline.entity_extractor import EntityExtractor
@@ -36,7 +36,7 @@ def cmd_extract(args):
     except ImportError:
         print(json.dumps({"text": args.text, "status": "entity_extractor_loaded", "note": "requires backend deps"}, ensure_ascii=False))
 
-def cmd_info(args):
+def cmd_info(args) -> None:
     """Show product info."""
     print(json.dumps({
         "product": "EasyRhythm 松弛有度",
@@ -45,7 +45,7 @@ def cmd_info(args):
         "status": "ok"
     }, ensure_ascii=False, indent=2))
 
-def main():
+def main() -> None:
     p = argparse.ArgumentParser(description='EasyRhythm 松弛有度智能客服工具')
     sub = p.add_subparsers(dest='command')
 
